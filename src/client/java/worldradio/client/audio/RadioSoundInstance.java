@@ -25,7 +25,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * One station playing at one place. {@link SourceTracker} moves it to whichever radio is loudest and sets its volume
  * every tick. The distance falloff is ours ({@link worldradio.signal.VolumeCurve}, no attenuation by the engine); the
- * direction is the sound engine's: the stream is mono and sits at the radio, so turning the head is heard at once. A
+ * direction is the sound engine's: the stream is mono and sits at the radio (with speakers: between it and them, see
+ * {@link worldradio.signal.SoundPlace}), so turning the head is heard at once. A
  * carried portable radio plays at the listener instead (relative, position 0); the engine reads "relative" only when
  * a sound starts, so {@link #move} tells the running channel itself. Its sound path names this instance, and
  * {@link worldradio.client.mixin.SoundBufferLibraryMixin} hands out the live stream for it.
@@ -48,7 +49,7 @@ public final class RadioSoundInstance extends AbstractTickableSoundInstance {
         this.url = url;
         this.attenuation = Attenuation.NONE;
         this.looping = false;
-        this.volume = volume;
+        setVolume(volume);
         move(pos, atListener);
         LIVE.put(id, this);
     }
@@ -95,7 +96,12 @@ public final class RadioSoundInstance extends AbstractTickableSoundInstance {
     }
 
     public void setVolume(float volume) {
-        this.volume = Math.clamp(volume, 0.0f, 1.0f);
+        this.volume = Math.max(volume, 0.0f);
+    }
+
+    /** What of the volume is above the engine's full volume, as a factor for the samples (1 at or below it). */
+    float gain() {
+        return Math.max(volume, 1.0f);
     }
 
     public void finish() {
@@ -114,9 +120,17 @@ public final class RadioSoundInstance extends AbstractTickableSoundInstance {
         return true;
     }
 
-    /** The sound's own factor is 1 (see resolve), and without a sound system resolve is never called. */
+    /**
+     * The sound's own factor is 1 (see resolve), and without a sound system resolve is never called. The engine
+     * takes no more than 1: a radio with speakers is louder than that, and the stream makes up the rest ({@link #gain}).
+     */
     @Override
     public float getVolume() {
+        return Math.min(volume, 1.0f);
+    }
+
+    /** The volume asked for, which is above 1 for a radio with speakers heard from close by. */
+    public float loudness() {
         return volume;
     }
 
@@ -135,7 +149,7 @@ public final class RadioSoundInstance extends AbstractTickableSoundInstance {
         try {
             RadioSoundInstance instance = LIVE.get(Integer.parseInt(dot < 0 ? rest : rest.substring(0, dot)));
             if (instance == null) return null;
-            RadioAudioStream s = new RadioAudioStream(instance.url);
+            RadioAudioStream s = new RadioAudioStream(instance.url, instance::gain);
             RadioAudioStream old = instance.stream;
             instance.stream = s;
             if (old != null) old.close();

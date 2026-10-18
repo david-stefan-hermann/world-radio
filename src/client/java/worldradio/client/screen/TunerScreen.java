@@ -221,7 +221,8 @@ public class TunerScreen extends net.minecraft.client.gui.screens.Screen {
                 g.text(font, hearing, x, top + 20, RadioUi.TEXT_SOFT, false);
                 if (mouseX >= x && mouseX < left + WIDTH - 8 && mouseY >= top + 18 && mouseY < top + 30) {
                     Component hint = Component.translatable(radio.getBlockState().is(WorldRadio.PORTABLE_RADIO)
-                            ? "worldradio.hearing.hint.portable" : "worldradio.hearing.hint", Config.get().speakerStep());
+                            ? "worldradio.hearing.hint.portable" : "worldradio.hearing.hint", Config.get().speakerStep(),
+                            Config.get().speakerVolume());
                     g.setTooltipForNextFrame(font, font.split(hint, 220), mouseX, mouseY + 16);
                 }
             }
@@ -266,7 +267,7 @@ public class TunerScreen extends net.minecraft.client.gui.screens.Screen {
         return false;
     }
 
-    /** The radio's volume, 0 to 100 %. */
+    /** The radio's volume, 0 to 100 %; the label counts in what its speakers add (5 points each at 100). */
     private final class Slider extends KeySlider {
         Slider(int x, int y, int width, int height, double value) {
             super(x, y, width, height, value);
@@ -279,7 +280,9 @@ public class TunerScreen extends net.minecraft.client.gui.screens.Screen {
 
         @Override
         protected void updateMessage() {
-            setMessage(Component.translatable("worldradio.volume", Math.round(value * 100)));
+            ReceiverBlockEntity radio = minecraft == null ? null : block();
+            double loudness = radio == null ? 1.0 : Config.loudness(radio.antenna());
+            setMessage(Component.translatable("worldradio.volume", Math.round(value * loudness * 100)));
         }
 
         @Override

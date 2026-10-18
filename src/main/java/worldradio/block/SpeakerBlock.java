@@ -16,7 +16,8 @@ import worldradio.server.RadioNetwork;
 
 /**
  * Makes a radio heard further: every speaker touching a radio, or touching another speaker of such a chain, adds to
- * that radio's hearing range (found by {@link RadioNetwork#speakers}). The sound still comes from the radio.
+ * that radio's hearing range (found by {@link RadioNetwork#speakers}). The sound comes from the radio
+ * and its speakers (see {@link worldradio.signal.SoundPlace}); how loud it is still goes by the distance to the radio.
  */
 public class SpeakerBlock extends HorizontalDirectionalBlock {
     public static final MapCodec<SpeakerBlock> CODEC = simpleCodec(SpeakerBlock::new);

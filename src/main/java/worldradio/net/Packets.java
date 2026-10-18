@@ -40,6 +40,8 @@ public final class Packets {
     public static final double REACH = 8.0;
     /** Radios or emitters per dimension the sources packet carries at most. */
     public static final int MAX_SOURCES = 4096;
+    /** Speakers of one radio that are sent to the clients as places of its sound. */
+    public static final int MAX_SPEAKERS = 64;
     /** Stations per amplifier the sources packet carries at most. */
     public static final int MAX_STATIONS = 64;
 
@@ -114,13 +116,16 @@ public final class Packets {
         }
     }
 
-    /** A radio that plays: where it stands, its station, how far it can be heard and its volume (0..1). */
-    public record RadioSource(BlockPos pos, String url, int range, float volume) {
+    /** A radio that plays: where it stands, its station, how far it can be heard and how loud it is: its volume
+     * (0..1) times what its speakers add, so above 1 with speakers. {@code speakers} are the
+     * speakers connected to it, which the sound comes from too (empty while the radio's chunk is not loaded). */
+    public record RadioSource(BlockPos pos, String url, int range, float volume, List<BlockPos> speakers) {
         public static final StreamCodec<RegistryFriendlyByteBuf, RadioSource> CODEC = StreamCodec.composite(
                 BlockPos.STREAM_CODEC, RadioSource::pos,
                 ByteBufCodecs.stringUtf8(MAX_URL), RadioSource::url,
                 ByteBufCodecs.VAR_INT, RadioSource::range,
                 ByteBufCodecs.FLOAT, RadioSource::volume,
+                BlockPos.STREAM_CODEC.apply(ByteBufCodecs.list(MAX_SPEAKERS)), RadioSource::speakers,
                 RadioSource::new);
     }
 

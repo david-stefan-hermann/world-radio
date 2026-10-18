@@ -63,8 +63,8 @@
   "worldradio.volume.tooltip.portable": "Volume of this portable radio; only you hear it. Your overall radio volume: Options → Music & Sounds → Radio",
   "worldradio.hearing": "Heard for %s blocks (%s speakers)",
   "worldradio.hearing.one": "Heard for %s blocks (1 speaker)",
-  "worldradio.hearing.hint": "Put Speakers against the radio, or against a speaker that is already connected, to be heard further (+%s blocks each). The sound gets quieter with distance and fades out just past this range.",
-  "worldradio.hearing.hint.portable": "Stand the portable radio on top of a Speaker to be heard further (+%s blocks); more speakers can be chained to that one. The sound gets quieter with distance and fades out just past this range.",
+  "worldradio.hearing.hint": "Put Speakers against the radio, or against a speaker that is already connected, to be heard further and louder (+%1$s blocks and +%2$s%% volume each). The sound gets quieter with distance and fades out just past this range.",
+  "worldradio.hearing.hint.portable": "Stand the portable radio on top of a Speaker to be heard further and louder (+%1$s blocks and +%2$s%% volume); more speakers can be chained to that one. The sound gets quieter with distance and fades out just past this range.",
   "worldradio.channel.host": "Sends over its transmitter (range %s blocks)",
   "worldradio.channel.nohost": "Not connected to a Radio Transmitter",
   "worldradio.channel.hint": "One more station for a Radio Transmitter. Put it against one, or against a channel of one.",
@@ -110,10 +110,10 @@
   "worldradio.book.receiver.direction": "The sound comes from the block: turn around and it stays where the radio is. A Portable Radio you carry plays in both ears alike.",
   "worldradio.book.receiver.silent": "Silent? It plays only while it is switched on, tuned, and the signal of its station reaches it.",
 
-  "worldradio.book.speaker.text": "Makes a radio heard further: every speaker adds %1$s blocks, up to %2$s.",
+  "worldradio.book.speaker.text": "Makes a radio heard further and louder: every speaker adds %1$s blocks, up to %2$s, and %3$s%% volume.",
   "worldradio.book.speaker.motto": "\"A little louder, please!\"",
   "worldradio.book.speaker.any": "Any planks and any wool will do.",
-  "worldradio.book.speaker.use": "Put it against a radio, or against a speaker that is already connected. The sound still comes from the radio. A connected speaker lights up while its radio plays.",
+  "worldradio.book.speaker.use": "Put it against a radio, or against a speaker that is already connected. The sound comes from the radio and from every connected speaker. A connected speaker lights up while its radio plays.",
 
   "worldradio.book.portable.text": "A radio to carry. It plays to you alone while it is anywhere in your inventory, as long as the signal of its station reaches you.",
   "worldradio.book.portable.motto": "\"Music wherever you go.\"",

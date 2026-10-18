@@ -183,7 +183,7 @@ is. A Portable Radio you carry plays in both ears alike.
 
 ## Speaker
 
-Makes a radio heard further: every speaker adds 4 blocks, up to 64.
+Makes a radio heard further and louder: every speaker adds 4 blocks, up to 64, and 5 % volume.
 
 > *"A little louder, please!"*
 
@@ -201,7 +201,10 @@ P P P
 
 - Put it against a radio, or against a speaker that is already connected: speakers that touch the radio count, and so
   do speakers that touch one of those, and so on in a chain.
-- The sound still comes from the radio, not from the speaker.
+- The sound comes from the radio and from every connected speaker: next to a speaker you hear it from there. How
+  loud it is still goes by the distance to the radio.
+- Each speaker adds 5 points to the radio's volume of 100: with 3 speakers the slider goes up to 115 %, with all
+  15 that count to 175 %.
 - A connected speaker lights up while its radio plays: its ring runs outwards.
 - It has no screen.
 
@@ -330,7 +333,7 @@ the loudest one plays, so nothing echoes. Up to six different stations play at o
   catalogue is MP3.
 - Stereo streams are mixed down to mono, so that the game can place the sound at the radio.
 - Some stations only allow known player apps and refuse the connection (SomaFM, for example).
-- A speaker makes its radio heard further; the sound still comes from the radio, not from the speaker.
+- A speaker makes its radio heard further; the sound comes from the radio and its speakers.
 - Version 2.0.0 split the Radio into transmitter and receivers. Radios from a 1.x world become Radio Transmitters
   (same block id `worldradio:radio`): station, antenna and on/off stay, their own volume is gone and they are silent
   until a Radio or Portable Radio picks them up. Amplifiers no longer make sound either.
@@ -348,12 +351,14 @@ the loudest one plays, so nothing echoes. Up to six different stations play at o
   "hearingBase": 4,
   "speakerStep": 4,
   "hearingMax": 64,
+  "speakerVolume": 5,
   "maxStations": 6
 }
 ```
 
-`baseRange`, `antennaStep` and `maxAntenna` (signal range) and `hearingBase`, `speakerStep` and `hearingMax` (how far
-a Radio block is heard: without speakers, more per speaker, and at most) are read by the server. Older files are
+`baseRange`, `antennaStep` and `maxAntenna` (signal range), `hearingBase`, `speakerStep` and `hearingMax` (how far
+a Radio block is heard: without speakers, more per speaker, and at most) and `speakerVolume` (points of volume each
+speaker adds to the radio's 100) are read by the server. Older files are
 carried over: the new entries are added, a `ranges` list from 0.1/0.2 is dropped, and a 0.3 file (no `configVersion`)
 with the old default step of 8 is moved to 32. `maxStations` (at most 8, which is what the sound engine allows) is
 read by each player's game. The numbers in the guide book and the "+32 blocks each" and "+4 blocks each" in the

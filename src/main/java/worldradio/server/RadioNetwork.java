@@ -305,7 +305,10 @@ public final class RadioNetwork {
                 setLevel(r.pos(), plays ? 3 : 0);
             }
             if (plays && playing.size() < Packets.MAX_SOURCES) {
-                playing.add(new Packets.RadioSource(r.pos(), r.url(), r.range(), r.volume()));
+                // its speakers make it louder as well as heard further
+                playing.add(new Packets.RadioSource(r.pos(), r.url(), r.range(),
+                        (float) (r.volume() * Config.loudness(r.antenna())),
+                        chains.getOrDefault(r.pos(), Set.of()).stream().limit(Packets.MAX_SPEAKERS).toList()));
             }
         }
         // the speakers of playing radios show it; those that no longer belong to one go dark

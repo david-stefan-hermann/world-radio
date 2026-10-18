@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.3.0
+- **Speakers make a radio louder** as well as heard further: each connected speaker adds 5 points to the radio's volume of 100, so a radio with 3 speakers plays at up to 115 % and one with all 15 at up to 175 %. The tuner's volume slider shows the result. New config entry `speakerVolume` (points per speaker, 0 switches it off).
+- **The sound comes from the speakers too**: next to a connected speaker you hear the radio from there, between speakers from in between. How loud it is still goes by the distance to the radio.
+- A radio's stream is opened a little before you get into its hearing range, so the sound **fades in** as you walk up to it instead of setting in suddenly.
+
 ## 2.2.0
 - The **World Radio Guide** is now drawn by the guide book library shared by all BaconCakeFactory mods (bundled in the jar, nothing extra to install). Pages and texts are the same; the chapter tabs are drawn in the paper's colour and the page buttons in ivory instead of piano keys, as in the other mods' books.
 

@@ -82,7 +82,7 @@ public final class GuideBook {
                         turn, use, new Text(key("receiver.use"), config.hearingBase()), new Text(key("receiver.silent")),
                         new Heading(key("heading.direction")), new Text(key("receiver.direction")))),
                 new Chapter("block.worldradio.speaker", new ItemStack(WorldRadio.SPEAKER_ITEM), Chapter.Side.LEFT, List.of(
-                        new Text(key("speaker.text"), config.speakerStep(), config.hearingMax()),
+                        new Text(key("speaker.text"), config.speakerStep(), config.hearingMax(), config.speakerVolume()),
                         new Quote(key("speaker.motto")),
                         crafting, recipe("speaker"), new Text(key("speaker.any")),
                         turn, picture("speakers"),

@@ -7,6 +7,7 @@ import worldradio.signal.Signal;
 import worldradio.signal.SignalGraph;
 import worldradio.signal.SignalGraph.Amplifier;
 import worldradio.signal.SignalGraph.Radio;
+import worldradio.signal.SoundPlace;
 import worldradio.signal.SourcePicker;
 import worldradio.signal.SourcePicker.Candidate;
 import worldradio.signal.VolumeCurve;
@@ -73,6 +74,40 @@ public class SignalGraphTest {
         check("radio range 0: sends nothing", r.get(62L).isEmpty());
         r = SignalGraph.compute(List.of(new Radio(1, 0, 0, 0, 32, "", "")), List.of(amp(63, 5, 0, 32)));
         check("radio without station: sends nothing", r.get(63L).isEmpty());
+
+        // speakers: 5 points of volume each on top of the radio's 100
+        check("loudness: no speakers = 1", VolumeCurve.loudness(0, 5) == 1.0);
+        check("loudness: 3 speakers = 1.15", Math.abs(VolumeCurve.loudness(3, 5) - 1.15) < 1e-9);
+        check("loudness: 15 speakers = 1.75", Math.abs(VolumeCurve.loudness(15, 5) - 1.75) < 1e-9);
+        check("loudness: 0 points per speaker = 1", VolumeCurve.loudness(15, 0) == 1.0);
+        check("amplify: gain 1 leaves quiet and full samples alone below the knee", VolumeCurve.amplify((short) 12000, 1.0) == 12000);
+        check("amplify: below the knee it is the product", VolumeCurve.amplify((short) 10000, 1.75) == 17500
+                && VolumeCurve.amplify((short) -10000, 1.75) == -17500);
+        boolean rising = true;
+        for (int s = 1; s <= 32767; s++) {
+            rising &= VolumeCurve.amplify((short) s, 1.75) >= VolumeCurve.amplify((short) (s - 1), 1.75);
+        }
+        check("amplify: never falls as the sample rises", rising);
+        check("amplify: full scale stays inside 16 bit, louder than the knee",
+                VolumeCurve.amplify(Short.MAX_VALUE, 1.75) > 0.8 * 32767 && VolumeCurve.amplify(Short.MAX_VALUE, 1.75) <= 32767
+                        && VolumeCurve.amplify(Short.MIN_VALUE, 1.75) >= -32767);
+
+        check("hearing range: 4 blocks end at 6, 64 at 80", VolumeCurve.hearingRange(4) == 6 && VolumeCurve.hearingRange(64) == 80);
+
+        // a radio at 0 and a speaker at 10: the sound sits between them, near the one the listener is next to
+        double[][] row = {{0, 0, 0}, {10, 0, 0}};
+        check("place: one block alone is the place", SoundPlace.blend(new double[]{3, 0, 0}, new double[][]{{7, 1, 2}})[0] == 7);
+        check("place: halfway between two it is the middle", Math.abs(SoundPlace.blend(new double[]{5, 0, 2}, row)[0] - 5) < 1e-9);
+        check("place: next to the speaker it is at the speaker", SoundPlace.blend(new double[]{10, 0, 1}, row)[0] > 9.8);
+        check("place: next to the radio it is at the radio", SoundPlace.blend(new double[]{0, 0, 1}, row)[0] < 0.2);
+        check("place: inside a block stays finite", Double.isFinite(SoundPlace.blend(new double[]{10, 0, 0}, row)[0]));
+        boolean smooth = true;
+        for (double x = -5, last = SoundPlace.blend(new double[]{-5, 0, 1}, row)[0]; x <= 15; x += 0.25) {
+            double now = SoundPlace.blend(new double[]{x, 0, 1}, row)[0];
+            smooth &= Math.abs(now - last) < 0.75 && (x <= 0 || x > 10 || now >= last);
+            last = now;
+        }
+        check("place: follows the listener along the row without a jump", smooth);
 
         // antenna columns: 32 + 32 per block, capped at 32 blocks
         check("antenna 0 = 32", Antenna.range(0) == 32);

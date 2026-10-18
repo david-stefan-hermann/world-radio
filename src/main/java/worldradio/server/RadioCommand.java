@@ -14,6 +14,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.permissions.Permission;
 import net.minecraft.server.permissions.PermissionLevel;
 import net.minecraft.world.level.block.state.BlockState;
+import worldradio.Config;
 import worldradio.block.AmplifierBlockEntity;
 import worldradio.block.ChannelBlockEntity;
 import worldradio.block.RadioBlockEntity;
@@ -109,6 +110,7 @@ public final class RadioCommand {
             out.append("receiver hearing=").append(radio.range()).append(" speakers=").append(radio.antenna())
                     .append(" level=").append(level(radio.getBlockState())).append(" enabled=").append(radio.enabled())
                     .append(" volume=").append(Math.round(radio.volume() * 100))
+                    .append(" loudness=").append(Math.round(radio.volume() * Config.loudness(radio.antenna()) * 100))
                     .append(" plays=").append(radio.plays())
                     .append(" url=").append(radio.url())
                     .append(" name=").append(radio.name())

@@ -22,6 +22,8 @@ DISMUKE=http://stream2.early1900s.org:8000/
 CLEAR="fill -10 -60 -4 130 -55 8 air"
 
 mkdir -p run/config
+# an empty server stops ticking after a minute by default, and with it the network: the test has no players
+if [ -f run/server.properties ]; then sed -i 's/^pause-when-empty-seconds=.*/pause-when-empty-seconds=0/' run/server.properties; fi
 printf '{\n  "ranges": [\n    32,\n    64\n  ],\n  "antennaStep": 8,\n  "maxStations": 6,\n  "directionalShare": 0.3\n}' > run/config/worldradio.json
 
 start() {
@@ -41,7 +43,7 @@ stop() {
 start
 
 check "old config loads, step 8 migrated to 32" "$(grep 'World Radio ready' run/runServer.out)" "range 32 \+ 32 per antenna block, up to 32 blocks"
-check "config written back with version, without ranges" "$(tr -d '\n ' < run/config/worldradio.json)" '^\{"configVersion":5,"baseRange":32,"antennaStep":32,"maxAntenna":32,"hearingBase":4,"speakerStep":4,"hearingMax":64,"maxStations":6\}$'
+check "config written back with version, without ranges" "$(tr -d '\n ' < run/config/worldradio.json)" '^\{"configVersion":5,"baseRange":32,"antennaStep":32,"maxAntenna":32,"hearingBase":4,"speakerStep":4,"hearingMax":64,"speakerVolume":5,"maxStations":6\}$'
 check "recipes and advancements parse" "$(grep -iE "couldn't parse|failed to parse|couldn't load|error.*worldradio" run/runServer.out | head -3)" '^$'
 
 # whatever the last run left (an older world still has power=... blocks there): information only
@@ -78,19 +80,19 @@ check "transmitter and amplifier alone: nothing plays" "$(status '0 -60 0')" "ne
 check "transmitter has no volume" "$(rcon 'worldradio volume 0 -60 0 40')" "No receiving radio"
 rcon "setblock 10 -60 2 worldradio:receiver" > /dev/null
 sleep 3
-check "new radio: hearing 4, silent, the station on offer" "$(status '10 -60 2')" "receiver hearing=4 speakers=0 level=0 enabled=true volume=100 plays=false url= name= signals=1 \| $KISS from 0,-60,0 hops=1 dist=10.2 \(network: 1 radios, 0 channels, 1 amplifiers, 1 receivers, 0 playing"
+check "new radio: hearing 4, silent, the station on offer" "$(status '10 -60 2')" "receiver hearing=4 speakers=0 level=0 enabled=true volume=100 loudness=100 plays=false url= name= signals=1 \| $KISS from 0,-60,0 hops=1 dist=10.2 \(network: 1 radios, 0 channels, 1 amplifiers, 1 receivers, 0 playing"
 rcon "worldradio tune 10 -60 2 \"$KISS\" Kiss FM" > /dev/null
 sleep 3
-check "tuned radio plays: level 3" "$(status '10 -60 2')" "receiver hearing=4 speakers=0 level=3 enabled=true volume=100 plays=true url=$KISS name=Kiss FM signals=1 .*1 receivers, 1 playing"
+check "tuned radio plays: level 3" "$(status '10 -60 2')" "receiver hearing=4 speakers=0 level=3 enabled=true volume=100 loudness=100 plays=true url=$KISS name=Kiss FM signals=1 .*1 receivers, 1 playing"
 rcon "worldradio volume 10 -60 2 40" > /dev/null
 sleep 2
-check "volume 40 %" "$(status '10 -60 2')" "receiver hearing=4 speakers=0 level=3 enabled=true volume=40 plays=true"
+check "volume 40 %" "$(status '10 -60 2')" "receiver hearing=4 speakers=0 level=3 enabled=true volume=40 loudness=40 plays=true"
 
 # --- speakers: +4 blocks of hearing range for each one connected to the radio, directly or through other speakers
 check "the hearing command is gone" "$(rcon 'worldradio hearing 10 -60 2 30')" "Incorrect argument|Unknown"
 rcon "setblock 11 -60 2 worldradio:speaker" > /dev/null
 sleep 2
-check "one speaker next to the radio: hearing 8" "$(status '10 -60 2')" "receiver hearing=8 speakers=1 "
+check "one speaker next to the radio: hearing 8" "$(status '10 -60 2')" "receiver hearing=8 speakers=1 .* volume=40 loudness=42 "
 check "the speaker of a playing radio is lit" "$(rcon 'execute if block 11 -60 2 worldradio:speaker[lit=true]')" "Test passed"
 rcon "worldradio enable 10 -60 2 false" > /dev/null
 sleep 2
@@ -109,7 +111,7 @@ check "chain cut at the radio: only the one on top is left, hearing 8" "$(status
 check "cut-off speakers go dark, the one on top stays lit" "$(rcon 'execute if block 12 -60 2 worldradio:speaker[lit=false]' 'execute if block 13 -60 2 worldradio:speaker[lit=false]' 'execute if block 10 -59 2 worldradio:speaker[lit=true]' | grep -c 'Test passed')" "^3$"
 rcon "fill 11 -60 2 11 -40 2 worldradio:speaker" > /dev/null
 sleep 3
-check "a long chain stops at hearingMax 64 (15 speakers)" "$(status '10 -60 2')" "receiver hearing=64 speakers=15 "
+check "a long chain stops at hearingMax 64 (15 speakers)" "$(status '10 -60 2')" "receiver hearing=64 speakers=15 .* volume=40 loudness=70 "
 rcon "fill 11 -60 2 14 -40 2 air" "setblock 10 -59 2 air" > /dev/null
 sleep 3
 check "speakers gone: back to 4" "$(status '10 -60 2')" "receiver hearing=4 speakers=0 "
@@ -126,10 +128,10 @@ check "chained to the speaker below (2 more, one of them beside the radio): hear
 rcon "fill 10 -60 6 11 -58 6 air" > /dev/null
 rcon "worldradio enable 10 -60 2 false" > /dev/null
 sleep 2
-check "radio switched off: silent, station kept" "$(status '10 -60 2')" "level=0 enabled=false volume=40 plays=false url=$KISS .*0 playing"
+check "radio switched off: silent, station kept" "$(status '10 -60 2')" "level=0 enabled=false volume=40 loudness=40 plays=false url=$KISS .*0 playing"
 rcon "worldradio enable 10 -60 2 true" "worldradio enable 0 -60 0 false" > /dev/null
 sleep 2
-check "transmitter off: the radio loses the signal and is silent" "$(status '10 -60 2')" "level=0 enabled=true volume=40 plays=false url=$KISS name=Kiss FM signals=0 .*0 playing"
+check "transmitter off: the radio loses the signal and is silent" "$(status '10 -60 2')" "level=0 enabled=true volume=40 loudness=40 plays=false url=$KISS name=Kiss FM signals=0 .*0 playing"
 rcon "worldradio enable 0 -60 0 true" > /dev/null
 sleep 2
 check "transmitter on again: the radio plays again" "$(status '10 -60 2')" "level=3 .*plays=true .*1 playing"

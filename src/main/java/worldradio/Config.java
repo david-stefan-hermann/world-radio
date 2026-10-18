@@ -6,13 +6,14 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.fabricmc.loader.api.FabricLoader;
 import worldradio.signal.Antenna;
+import worldradio.signal.VolumeCurve;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * {@code config/worldradio.json}. The range and hearing settings are read by the server (the blocks carry their range to
+ * {@code config/worldradio.json}. The range, hearing and speaker volume settings are read by the server (the blocks carry their range to
  * the clients), {@code maxStations} by the client. A file from 0.1/0.2 with a
  * {@code ranges} list (or the {@code portableHearing} of 2.1.0, or a {@code directionalShare}) still loads: Gson skips the unknown entry and the file
  * is written back without it. A file from
@@ -39,6 +40,8 @@ public final class Config {
         int speakerStep = 4;
         /** The most speakers can raise a radio's hearing range to. */
         int hearingMax = 64;
+        /** Points of volume each speaker connected to a radio adds to the radio's 100. */
+        int speakerVolume = 5;
         /** How many stations one client plays at the same time (vanilla has 8 streaming channels). */
         int maxStations = 6;
 
@@ -60,6 +63,10 @@ public final class Config {
 
         public int speakerStep() {
             return Math.max(0, speakerStep);
+        }
+
+        public int speakerVolume() {
+            return Math.max(0, speakerVolume);
         }
 
         public int hearingMax() {
@@ -86,6 +93,11 @@ public final class Config {
     /** A radio's hearing range in blocks with {@code speakers} speakers connected to it. */
     public static int hearing(int speakers) {
         return (int) Math.min(values.hearingMax(), values.hearingBase() + (long) Math.max(speakers, 0) * values.speakerStep());
+    }
+
+    /** How much louder than its own volume a radio with {@code speakers} speakers connected to it plays (1 = as set). */
+    public static double loudness(int speakers) {
+        return VolumeCurve.loudness(speakers, values.speakerVolume());
     }
 
     /** Speakers past this many add nothing to a radio. */
