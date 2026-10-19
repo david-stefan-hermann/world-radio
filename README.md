@@ -26,10 +26,10 @@ which station a transmitter sends and what each radio is set to, every player's 
 
 ## The guide book
 
-Every player gets a **World Radio Guide** the first time they join: a book with a chapter for every block and for
-range and antennas, finding stations and listening, with the recipes and build pictures, in English and German.
-Right-click opens it; the blocks' tabs are on the left, the topics' on the right. Lost it? Craft a new one from a book
-and a copper ingot (shapeless, in the Misc tab of the recipe book), or take it from the creative tab.
+The **World Radio Guide** is a book with a chapter for every block and for range and antennas, finding stations and
+listening, with the recipes and build pictures, in English and German. Craft it from a book and a copper ingot
+(shapeless, in the Misc tab of the recipe book), or take it from the creative tab. Right-click opens it, E or Escape
+closes it; the blocks' tabs are on the left, the topics' on the right.
 
 This page follows the book chapter by chapter and adds the details that do not fit on its pages.
 

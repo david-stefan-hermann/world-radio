@@ -134,7 +134,6 @@ public class WorldRadio implements ModInitializer {
         ServerTickEvents.END_LEVEL_TICK.register(level -> RadioNetwork.get(level).tick());
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> RadioNetwork.clear());
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            GuideBook.BOOK.giveOnce(handler.getPlayer());
             Packets.sendFavourites(handler.getPlayer());
             RadioNetwork.get((net.minecraft.server.level.ServerLevel) handler.getPlayer().level()).sendTo(handler.getPlayer());
         });
