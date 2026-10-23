@@ -2,7 +2,7 @@
 # Compiles the Minecraft-free signal package with plain javac and runs SignalGraphTest.
 set -u
 cd "$(dirname "$0")/.."
-export JAVA_HOME="${JAVA_HOME:-C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.4.101-hotspot}"
+if [ "${OS:-}" = Windows_NT ]; then export JAVA_HOME="${JAVA_HOME:-C:\\Program Files\\Eclipse Adoptium\\jdk-25.0.4.101-hotspot}"; fi
 jdk() { "$JAVA_HOME/bin/$1" "${@:2}"; }
 OUT=build/signal-test
 rm -rf "$OUT" && mkdir -p "$OUT"

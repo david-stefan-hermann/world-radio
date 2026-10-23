@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "worldradio:portable_radio",
+          "modifier": { "type": "minecraft:copy_components", "source": "block_entity", "include": [ "worldradio:tuning" ] }
+        }
+      ],
+      "condition": { "type": "minecraft:survives_explosion" }
+    }
+  ],
+  "random_sequence": "worldradio:blocks/portable_radio"
+}

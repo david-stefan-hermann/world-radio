@@ -1,38 +1,36 @@
 package worldradio.client.audio;
 
 import net.minecraft.client.sounds.AudioStream;
+import worldradio.signal.VolumeCurve;
 
 import javax.sound.sampled.AudioFormat;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.function.DoubleSupplier;
 
 /**
- * The vanilla streaming interface over one {@link PcmBuffer}, as stereo panned by a {@link StereoMixer} (OpenAL never
- * places a stereo buffer in the world, so the direction is all ours). Never blocks the sound thread: it always hands
+ * The vanilla streaming interface over one {@link PcmBuffer}, in mono, because OpenAL places only a mono buffer in the
+ * world (see {@link RadioSoundInstance}). Never blocks the sound thread: it always hands
  * out a quarter second (real audio first, silence for whatever is missing), so OpenAL never runs dry and stops the
- * sound. Small buffers keep the delay short: vanilla queues four at the start.
+ * sound. A radio with speakers is louder than the engine's full volume; that part is put into the samples here. Small buffers keep the delay short: vanilla queues four at the start.
  */
 public final class RadioAudioStream implements AudioStream {
-    public static final AudioFormat FORMAT = new AudioFormat(StationStream.RATE, 16, 2, true, false);
+    public static final AudioFormat FORMAT = new AudioFormat(StationStream.RATE, 16, 1, true, false);
     private static final int CHUNK = StationStream.RATE / 4;
 
     private final String url;
     private final PcmBuffer buffer;
-    private final StereoMixer mixer = new StereoMixer();
+    /** Factor for the samples, 1 or more; asked for every chunk. */
+    private final DoubleSupplier gain;
     private final short[] samples = new short[CHUNK];
     private boolean closed;
     private volatile long reads;
     private volatile long realSamples;
 
-    public RadioAudioStream(String url, float gainLeft, float gainRight) {
+    public RadioAudioStream(String url, DoubleSupplier gain) {
         this.url = url;
+        this.gain = gain;
         this.buffer = StreamPool.acquire(url);
-        mixer.setGains(gainLeft, gainRight);
-    }
-
-    /** Called from the client thread; the next chunk ramps to these gains. */
-    public void setGains(float left, float right) {
-        mixer.setGains(left, right);
     }
 
     @Override
@@ -44,9 +42,10 @@ public final class RadioAudioStream implements AudioStream {
     public ByteBuffer read(int size) {
         realSamples += buffer.read(samples);
         reads++;
-        ByteBuffer out = ByteBuffer.allocateDirect(CHUNK * 4).order(ByteOrder.LITTLE_ENDIAN);
-        mixer.mix(samples, CHUNK, out);
-        out.flip();
+        double g = gain.getAsDouble();
+        if (g > 1.0) for (int i = 0; i < CHUNK; i++) samples[i] = VolumeCurve.amplify(samples[i], g);
+        ByteBuffer out = ByteBuffer.allocateDirect(CHUNK * 2).order(ByteOrder.LITTLE_ENDIAN);
+        out.asShortBuffer().put(samples);
         return out;
     }
 
